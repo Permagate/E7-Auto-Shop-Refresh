@@ -47,7 +47,7 @@ scan_per_refresh=3
 drag_length=300
 
 #max refresh attempt
-max_refresh=20
+max_refresh=333
 
 #countdown to script run
 #to give startup grace time so user can refocus the emulator
