@@ -46,6 +46,9 @@ scan_per_refresh=3
 #in between scan, the script attempt to drag upward by this amount (in pixel)
 drag_length=450
 
+#max refresh attempt
+max_refresh=20
+
 #countdown to script run
 #to give startup grace time so user can refocus the emulator
 for i in range(3,0,-1):
@@ -95,7 +98,9 @@ while keyboard.is_pressed('q') == False:
 # Refresh if scan attempt hits the limit
 # Otherwise, drag the screen upward
     if scanned>=scan_per_refresh:
-        # break
+        if cont_refresh>=max_refresh:
+            # Exit script when max refresh attempt has been reached
+            break
         time.sleep(0.5)
         RB_point=pyautogui.center(RB_pos)
         pyautogui.click(x=RB_point[0], y=RB_point[1], clicks=2, interval=0.05, button='left')
