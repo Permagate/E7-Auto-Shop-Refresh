@@ -44,7 +44,7 @@ mystic_bought=False
 scan_per_refresh=3
 
 #in between scan, the script attempt to drag upward by this amount (in pixel)
-drag_length=450
+drag_length=300
 
 #max refresh attempt
 max_refresh=20
