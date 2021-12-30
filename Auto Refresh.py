@@ -10,10 +10,6 @@ from pyautogui import *
 import pyautogui
 import time
 import keyboard
-###might use it later so that it clicks slightly off everytime
-#import random 
-
-
 
 #pyautogui.scroll(amount_to_scroll, x=moveToX, y=moveToY)
 #Scroll at semi random place
@@ -29,14 +25,32 @@ pyautogui.FAILSAFE = True
 pantalla=pyautogui.size()
 ##Move to center of the screen instantly
 pyautogui.moveTo(pantalla[0]/2, pantalla[1]/2, duration=0)
+
 #number of visual inspections done on screen
-contador=0
+scanned=0
 #number of coven bought
 cont_coven=0
 #number of mystic bought
 cont_mystic=0
 #number of refresh done
 cont_refresh=0
+
+#mark coven as bought so the script no longer attempts to buy it twice every shop refresh
+coven_bought=False
+#mark mystic as bought so the script no longer attempts to buy it twice every shop refresh
+mystic_bought=False
+
+#scan only limited number of times before refreshing shop
+scan_per_refresh=3
+
+#in between scan, the script attempt to drag upward by this amount (in pixel)
+drag_length=450
+
+#countdown to script run
+#to give startup grace time so user can refocus the emulator
+for i in range(3,0,-1):
+    print(f"Running script in {i}...")
+    time.sleep(1)
 
 #%%
 while keyboard.is_pressed('q') == False:
@@ -45,71 +59,63 @@ while keyboard.is_pressed('q') == False:
     RB_pos=pyautogui.locateOnScreen('refresh_button.PNG',confidence=0.90)
 #The confidence is added due to little variations in the background
 #Search for the price and quantity image of covenant summon
-    Coven_pos=pyautogui.locateOnScreen('new_coven.PNG',confidence=0.98)
+    Coven_pos=pyautogui.locateOnScreen('covenant.PNG',confidence=0.85,grayscale=True)
 #Search for the price and quantity image of mystic summon
-    Mystic_pos=pyautogui.locateOnScreen('mystic1.PNG',confidence=0.90)
+    Mystic_pos=pyautogui.locateOnScreen('mystic.PNG',confidence=0.85,grayscale=True)
+
 #Checks for covenant
-    if (Coven_pos) != None:
+    if coven_bought == False and (Coven_pos) != None:
         print("Buy Covenant Summons.")
-        contador=0
-        Coven_point=pyautogui.center(Coven_pos)
-        #print("La pos en x seria...",Coven_point[0],"\nLa pos en y seria...", Coven_point[1])
-        #Respecto de la pos original +800 en x y mas 50 en y es aprox donde esta el boton cuando el juego esta full screen
-        pyautogui.click(x=Coven_point[0], y=Coven_point[1], clicks=2, interval=0.05, button='left')
-        time.sleep(0.5)#wait for confirm button
-        Buy_button_Covenant_pos=pyautogui.locateOnScreen('Buy_button_Covenant.PNG')
+        pyautogui.click(x=Coven_pos[0]+800, y=Coven_pos[1]+100, clicks=2, interval=0.05, button='left')
+        time.sleep(0.5) #wait for confirm button
+        Buy_button_Covenant_pos=pyautogui.locateOnScreen('Buy_button_Covenant.PNG',confidence=0.90)
         Buy_button_Covenant_point=pyautogui.center(Buy_button_Covenant_pos)
         pyautogui.click(x=Buy_button_Covenant_point[0], y=Buy_button_Covenant_point[1], clicks=2, interval=0.05, button='left')
         cont_coven+=1
-        
+        coven_bought=True
     else:
         time.sleep(0.05)
-        #print("No Covenant summons to buy.")
-        
 
 #checks for mystic
-    if (Mystic_pos) != None:
+    if mystic_bought == False and (Mystic_pos) != None:
         print("Buy Mystic Summons.")
-        contador=0
-        Mystic_point=pyautogui.center(Mystic_pos)
-        #print("x=",Mystic_point[0],"y=",Mystic_point[1])
-        #print("La pos en x seria...",Mystic_point[0],"\nLa pos en y seria...", Mystic_point[1])
-        #Respecto de la pos original +800 en x y mas 50 en y es aprox donde esta el boton cuando el juego esta full screen
         pyautogui.click(x=Mystic_pos[0]+800, y=Mystic_pos[1]+100, clicks=2, interval=0.05, button='left')
-        time.sleep(0.5)#wait for confirm button
-        Buy_button_Mystic_pos=pyautogui.locateOnScreen('Buy_button_Mystic.PNG')
+        time.sleep(0.5) #wait for confirm button
+        Buy_button_Mystic_pos=pyautogui.locateOnScreen('Buy_button_Mystic.PNG',confidence=0.90)
         Buy_button_Mystic_point=pyautogui.center(Buy_button_Mystic_pos)
         pyautogui.click(x=Buy_button_Mystic_point[0], y=Buy_button_Mystic_point[1], clicks=2, interval=0.05, button='left')
         cont_mystic+=1
-        
+        mystic_bought=True
     else:
-        #print("No Mystic summons to buy.")
-        pyautogui.moveTo(pantalla[0]/2, pantalla[1]/2, duration=0)
-        #Drag upward 300 pixels in 0.2 seconds
-        pyautogui.dragTo(pantalla[0]/2, pantalla[1]/2-300, duration=0.2)
-        time.sleep(0.1)
-        contador = contador + 1
-        
-#Double check in case of lag don't enable unless you're lagging
-    # if contador==2 :
-    #     pyautogui.moveTo(pantalla[0]/2, pantalla[1]/2, duration=0)
-    #     #Drag upward 300 pixels in 0.2 seconds
-    #     pyautogui.dragTo(pantalla[0]/2, pantalla[1]/2-300, duration=0.2)
-    #     time.sleep(0.5)
-#Finally refreshes
-    if contador>=2 :
+        time.sleep(0.05)
+
+# Increment scan attempt, the script scans only a limited number of times before refreshing the shop
+    scanned+=1
+
+# Refresh if scan attempt hits the limit
+# Otherwise, drag the screen upward
+    if scanned>=scan_per_refresh:
+        # break
         time.sleep(0.5)
         RB_point=pyautogui.center(RB_pos)
         pyautogui.click(x=RB_point[0], y=RB_point[1], clicks=2, interval=0.05, button='left')
         time.sleep(0.5)#wait for confirm to appear
-        Confirm_pos=pyautogui.locateOnScreen('confirm button.PNG')
+        Confirm_pos=pyautogui.locateOnScreen('confirm button.PNG',confidence=0.90)
         Confirm_point=pyautogui.center(Confirm_pos)
         pyautogui.click(x=Confirm_point[0], y=Confirm_point[1], clicks=2, interval=0.05, button='left')
-        contador=0
+        scanned=0
         time.sleep(0.5)
         cont_refresh+=1
+        coven_bought=False
+        mystic_bought=False
         print("Covenant Summons bought=",cont_coven)
         print("Mystic Summons bought=",cont_mystic)
         print("Refresh Done=",cont_refresh)
+    else:
+        pyautogui.moveTo(pantalla[0]/2, pantalla[1]/2, duration=0)
+        #Drag upward 300 pixels in 0.2 seconds
+        pyautogui.dragTo(pantalla[0]/2, pantalla[1]/2-drag_length, duration=0.2)
+        time.sleep(0.1)
+
 #%%Outside of the while loop
 print("You exited successfuly")
